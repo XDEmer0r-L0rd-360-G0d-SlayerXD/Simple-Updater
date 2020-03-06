@@ -22,7 +22,7 @@ def check_for_git_repo_update(target_program: str, repo: str):
 
     # get current program version
     if os.path.isfile(target_program):
-        stream = os.popen(f'python {target_program} -v')
+        stream = os.popen(f'python {target_program} -version')
         current_version = stream.read().strip()
     else:
         current_version = 'something that should never be a version name'
@@ -54,11 +54,20 @@ def check_for_git_repo_update(target_program: str, repo: str):
     # download update data
     chosen_link = f'{base_repo_site}{next_link}/update.txt'
     dl_from_link(chosen_link, 'update_info_data.txt')
+    run_update('update_info_data.txt', base_repo_site + next_link + '/')
 
+
+def run_update(file_name, updated_repo_link):
+    """
+    Executes data in dict in downloaded text file
+    :param file_name: name of file with update data
+    :param updated_repo_link: link pointing to latest version of files
+    :return: None
+    """
     # read update file
-    with open('update_info_data.txt', 'r') as f:
+    with open(f'{file_name}', 'r') as f:
         # turn file into dict, replace is used to simplify text
-        instructions = eval(f.read().replace('$updated_repo$', base_repo_site + next_link + '/'))
+        instructions = eval(f.read().replace('$updated_repo$', updated_repo_link))
     """
     file contains:
     version
@@ -67,12 +76,12 @@ def check_for_git_repo_update(target_program: str, repo: str):
     extra
     """
     # check version, download files, run extra code
-    if instructions['version'] != current_version:
-        for num_a, a in enumerate(instructions['dl links']):
-            dl_from_link(a, instructions['dl names'][num_a])
-        if instructions['extra'] != '':
-            exec(instructions['extra'])
-    os.remove('update_info_data.txt')
+    print(instructions['version'])
+    for num_a, a in enumerate(instructions['dl links']):
+        dl_from_link(a, instructions['dl names'][num_a])
+    if instructions['extra'] != '':
+        exec(instructions['extra'])
+    os.remove(f'{file_name}')
 
 
 def main():
@@ -81,7 +90,8 @@ def main():
 
 
 if __name__ == '__main__':
-
+    # will run python program.py -version, program should print(version);exit()
     target_check = 'program.py'
+    # where to look for updates
     repo_link = 'https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD/Pixel_placer'
     main()
