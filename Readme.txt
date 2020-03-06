@@ -26,3 +26,8 @@ dl links and dl names get matched up and put into dl_from_link()
 $updated_repo$ is designed to make this text more readable and gets replaced with real repo link in run_update()
 extra will execute extra custom code if desired at the end. Indended for things like cleanup or something simmilar.
 version is unneeded due to other checks in other places.
+
+The Idea:
+compare versions between home and on git
+if different, find and download the update file
+use the update file to download new files, and maybe do clean up or something with 'extra'
