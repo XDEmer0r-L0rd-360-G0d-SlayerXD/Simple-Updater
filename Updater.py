@@ -5,17 +5,23 @@ import lxml.html as html
 
 
 def dl_from_link(url, file_name):
+    """
+    Does as name implies.
+    :param url: file source
+    :param file_name: where to put it, and what to name it
+    :return: None
+    """
     print(f'dl: {file_name}')
     with open(file_name, 'wb') as f:
         f.write(requests.get(url).content)
 
 
 def check_for_git_repo_update(target_program: str, repo: str):
-    # designed for github only right now
+    # the part that gets cut of in hrefs (designed for github only right now)
     base_repo_site = 'https://github.com'
     # get current program version
-    # stream = os.popen(f'python {target_program} -v')
-    stream = os.popen('echo v0.0')
+    stream = os.popen(f'python {target_program} -v')
+    # stream = os.popen('echo v0.0')
     current_version = stream.read()
     print('current version', current_version)
     # go to newest release
