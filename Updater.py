@@ -19,49 +19,46 @@ def dl_from_link(url, file_name):
 def check_for_git_repo_update(target_program: str, repo: str):
     # the part that gets cut of in hrefs (designed for github only right now)
     base_repo_site = 'https://github.com'
+
     # get current program version
-    stream = os.popen(f'python {target_program} -v')
-    # stream = os.popen('echo v0.0')
-    current_version = stream.read()
+    if os.path.isfile(target_program):
+        stream = os.popen(f'python {target_program} -v')
+        current_version = stream.read().strip()
+    else:
+        current_version = 'something that should never be a version name'
     print('current version', current_version)
-    # go to newest release
+
+    # url correction
     fixed_link = repo if repo.split('/')[-1] == 'releases' else repo + '/releases'
-    print('fixed', fixed_link)
+    print('Checking:', fixed_link)
+
+    # go to newest release
     r = requests.get(fixed_link)
     tree = html.fromstring(r.content)
-    tree = tree.xpath("//div[@class='release-entry']")[0]
-    tree = tree.xpath("//div[@class='release-header']")[0]
-    next_link = tree.xpath("//div[@class='d-flex flex-items-start']/div/a/@href")[0]
-    print('next', next_link)
+
+    # trying to use the most dynamic items to zero in on newest version
+    next_link = tree.xpath("//div[@class='release-entry']//div[@class='release-header']//div[@class='d-flex flex-items-start']/div/a/@href")[0]
+
+    # tag name is version used to compare
     scanned_version = tree.xpath(f"//div[@class='d-flex flex-items-start']/div/a/text()")[0]
-    if current_version.strip() == scanned_version:
-        print('up to date')
+
+    # checks if update is needed
+    if current_version == scanned_version:
+        print('Up to date.')
         return
-    print('updating')
-    # exit()
-    # download update file
-    # r = requests.get(base_repo_site + next_link)
-    # tree = html.fromstring(r.content)
-    # tree = tree.xpath('//details')
-    # print(tree)
-    # input('hold')
-    # dl_links = tree.xpath("//a/@href")
+    print('Updating.')
+
+    # prep links for downloading
+    next_link = next_link.replace('tag', 'download')
+
+    # download update data
     chosen_link = f'{base_repo_site}{next_link}/update.txt'
-    # for a in dl_links:
-    #     a = str(a)
-    #     if a.startswith('update') and a.endswith('.txt'):
-    #         chosen_link = a
-    # if chosen_link == '':
-    #     print('fixed_link', fixed_link)
-    #     print('next_link', next_link)
-    #     print('chosen_link', chosen_link)
-    #     print('dl_links', dl_links)
-    #     input('error.>')
-    # print('chosen', chosen_link)
-    dl_from_link(chosen_link.replace('tag', 'download'), 'update_info_data.txt')
+    dl_from_link(chosen_link, 'update_info_data.txt')
+
     # read update file
     with open('update_info_data.txt', 'r') as f:
-        instructions = eval(f.read().replace('$updated_repo$', base_repo_site + next_link.replace('tag', 'download') + '/'))
+        # turn file into dict, replace is used to simplify text
+        instructions = eval(f.read().replace('$updated_repo$', base_repo_site + next_link + '/'))
     """
     file contains:
     version
@@ -69,6 +66,7 @@ def check_for_git_repo_update(target_program: str, repo: str):
     dl file name
     extra
     """
+    # check version, download files, run extra code
     if instructions['version'] != current_version:
         for num_a, a in enumerate(instructions['dl links']):
             dl_from_link(a, instructions['dl names'][num_a])
