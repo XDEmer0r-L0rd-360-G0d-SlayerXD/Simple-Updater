@@ -1,7 +1,7 @@
 import requests
 import os
-import subprocess
 import lxml.html as html
+import sys
 
 
 def dl_from_link(url, file_name):
@@ -25,8 +25,8 @@ def check_for_git_repo_update(target_program: str, repo: str):
         stream = os.popen(f'python {target_program} -version')
         current_version = stream.read().strip()
     else:
-        current_version = 'something that should never be a version name'
-    print('current version', current_version)
+        current_version = 'No version exists'
+    print('current version:', current_version)
 
     # url correction
     fixed_link = repo if repo.split('/')[-1] == 'releases' else repo + '/releases'
@@ -94,4 +94,16 @@ if __name__ == '__main__':
     target_check = 'program.py'
     # where to look for updates
     repo_link = 'https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD/Pixel_placer'
+    args_in = sys.argv
+    for num_a, a in enumerate(args_in):
+        if a == '-version':
+            print('v1.0')
+            exit()
+        if a in {'-h', '-help'}:
+            print("-t, -target to set program to find current version")
+            print("-r, -repo to show where to download updates")
+        if a in {'-t', '-target'}:
+            target_check = args_in[num_a + 1]
+        if a in {'-r', '-repo'}:
+            repo_link = args_in[num_a + 1]
     main()
