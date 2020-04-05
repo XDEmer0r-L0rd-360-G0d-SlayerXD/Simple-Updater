@@ -12,6 +12,6 @@ def cleanup_func():
 
 INSTRUCTIONS = {'VERSION': 'dev_2',
                 'prep': 'prep func',
-                'dl': (('$R$want.txt', 'want.txt'), ('$R$main.py', 'main.py')),
+                'dl': (('$R$want.txt', 'want.txt'), ('$R$example_main.py', 'example_main.py')),
                 'cleanup': 'cleanup func'
                 }

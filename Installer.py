@@ -5,7 +5,7 @@ import importlib
 # written in 3.8, should work for most versions before
 
 # These are to designed to be changed by user
-CHECK_FILE = 'main.py'  # file that contains the version var (will be imported, should be in same dir as Installer.py)
+CHECK_FILE = 'example_main.py'  # file that contains the version var (will be imported, should be in same dir as Installer.py)
 UPDATE_FILE_LINK = 'https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD/Simple-Updater'  # where to find the update file
 IS_GITHUB_LINK = True  # runs extra code when its a repo, otherwise assume UPDATE_FILE_LINK is static
 UPDATE_FILE_NAME = 'update.py'  # will eval a .txt and run a .py. must still follow a specified format
