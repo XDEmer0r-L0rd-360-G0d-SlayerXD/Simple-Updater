@@ -134,7 +134,7 @@ def run_update(file_name: str, current_version: str, github_href: str = ''):
         exec(instructions['cleanup'])
     if delete_update_file:
         os.remove(file_name)
-    print(f'Updated to: {instructions["VERSION"]}')
+    print(f'Updated: {current_version} -> {instructions["VERSION"]}')
 
 
 # ensure code works properly
