@@ -2,12 +2,13 @@ import subprocess
 import sys
 import os
 import importlib
+# written in 3.8, 3.5 minimum due to function typing
 
 # These are to designed to be changed by user
-CHECK_FILE = 'hold.txt'  # program that contains the version (will be imported, should be in same dir as installer.py)
+CHECK_FILE = 'hold.txt'  # file that contains the version (will be imported, should be in same dir as installer.py)
 UPDATE_FILE_LINK = 'link to repo'  # where to find the update file
 IS_GITHUB_LINK = True  # runs extra code when its a repo, otherwise assume UPDATE_FILE_LINK is static
-UPDATE_FILE_NAME = ''  # will eval a .txt and run a .py. must still follow a specified format
+UPDATE_FILE_NAME = 'update.py'  # will eval a .txt and run a .py. must still follow a specified format
 NEEDED_IMPORTS = {'wifiPassword': 'wifipassword', 'requests': 'requests'}  # {'import name': 'pip install name'}
 
 
@@ -42,8 +43,6 @@ def dl_from_link(url, file_name):
     :param file_name: where to put it, and what to name it
     :return: None
     """
-    ensure_minimum_imports({'requests': 'requests'})
-    import requests
 
     print(f'dl: {file_name}')
     with open(file_name, 'wb') as f:
@@ -69,22 +68,50 @@ def get_current_version(target_program):
     return text
 
 
-def get_update_file(update_link, is_github, file_name):
+def get_update_file(update_link, is_github, file_name) -> str:
+    """
+    Only used to find and get the update file.
+    limitations: no '/' file names (prob not possible)
+    :param update_link: link used to find update file, either a github repo or a static link
+    :param is_github: An explicit way to ensure file is found correctly
+    :param file_name: Used to find correct file on github and will also be the name of saved file
+    :return: A base repo site if github is used for later
+    """
+    # if static link, then use it directly
     if not is_github:
         dl_from_link(update_link, file_name)
-        return 
+        return ''
     base_repo_site = 'https://github.com'
 
     # url correction
-    fixed_link = update_link if update_link.split('/')[-1] == 'releases' else update_link + '/releases'
+    if update_link.split('/')[-1] == '':
+        update_link = update_link[:-1]
+    fixed_link = update_link + '/latest' if update_link.split('/')[-1] == 'releases' else update_link + '/releases' + '/latest'
     print('Checking:', fixed_link)
-    
-    return
+
+    # go to newest release
+    r = requests.get(fixed_link)
+    tree = html.fromstring(r.content)
+    parts = tree.xpath("//a[@class='d-flex flex-items-center min-width-0']/@href")
+    if len(parts) == 0:
+        # todo error handling
+        print('latest release has no update file')
+        exit()
+    download_href = base_repo_site + '/'.join(parts[0].split('/')[:-1]) + '/'
+    # print(download_href)
+    dl_from_link(download_href + file_name, file_name)
+    return download_href
 
 
 if __name__ == '__main__':
+    mandatory_modules = {'requests': 'requests', 'lxml': 'lxml'}
+    ensure_minimum_imports(mandatory_modules)
+    import requests
+    import lxml.html as html
     print('running')
+    get_update_file('https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD/Simple-Updater', True, UPDATE_FILE_NAME)
+    exit()
     ensure_minimum_imports(NEEDED_IMPORTS)
     current_version = get_current_version(CHECK_FILE)
-    get_update_file(UPDATE_FILE_LINK, IS_GITHUB_LINK, UPDATE_FILE_NAME)
+    github_dl_href = get_update_file(UPDATE_FILE_LINK, IS_GITHUB_LINK, UPDATE_FILE_NAME)
     print(current_version)
