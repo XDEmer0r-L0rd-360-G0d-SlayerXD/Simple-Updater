@@ -2,11 +2,11 @@ import subprocess
 import sys
 import os
 import importlib
-# written in 3.8, 3.5 minimum due to function typing
+# written in 3.8, should work for most versions before
 
 # These are to designed to be changed by user
-CHECK_FILE = 'hold.txt'  # file that contains the version (will be imported, should be in same dir as installer.py)
-UPDATE_FILE_LINK = 'link to repo'  # where to find the update file
+CHECK_FILE = 'program.py'  # file that contains the version (will be imported, should be in same dir as installer.py)
+UPDATE_FILE_LINK = 'https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD/Simple-Updater'  # where to find the update file
 IS_GITHUB_LINK = True  # runs extra code when its a repo, otherwise assume UPDATE_FILE_LINK is static
 UPDATE_FILE_NAME = 'update.py'  # will eval a .txt and run a .py. must still follow a specified format
 NEEDED_IMPORTS = {'wifiPassword': 'wifipassword', 'requests': 'requests'}  # {'import name': 'pip install name'}
@@ -68,7 +68,7 @@ def get_current_version(target_program):
     return text
 
 
-def get_update_file(update_link, is_github, file_name) -> str:
+def get_update_file(update_link, is_github, file_name):
     """
     Only used to find and get the update file.
     limitations: no '/' file names (prob not possible)
@@ -87,7 +87,6 @@ def get_update_file(update_link, is_github, file_name) -> str:
     if update_link.split('/')[-1] == '':
         update_link = update_link[:-1]
     fixed_link = update_link + '/latest' if update_link.split('/')[-1] == 'releases' else update_link + '/releases' + '/latest'
-    print('Checking:', fixed_link)
 
     # go to newest release
     r = requests.get(fixed_link)
@@ -103,15 +102,46 @@ def get_update_file(update_link, is_github, file_name) -> str:
     return download_href
 
 
+def run_update(file_name: str, current_version: str, github_href: str = ''):
+    """
+    Uses the update file to do things
+    :param file_name: Update file name
+    :param current_version: Visible version
+    :param github_href: Useful in simplification of links
+    :return: None
+    """
+    if file_name.split('.')[-1] == 'py':
+        mod = importlib.import_module(file_name.replace('.py', '')+'')
+        instructions = mod.INSTRUCTIONS
+    else:
+        with open(file_name, 'r') as f:
+            instructions = eval(f.read())
+    if instructions['VERSION'] == current_version:
+        print('Already up to date')
+        return
+    print(instructions)
+    if instructions['prep'] == 'prep func':
+        mod.prep_func()
+    else:
+        exec(instructions['prep'])
+    print(github_href)
+    # a simplification
+    for a in instructions['dl']:
+        dl_from_link(a[0].replace('$R$', github_href), a[1])
+    if instructions['cleanup'] == 'cleanup func':
+        mod.cleanup_func()
+    else:
+        exec(instructions['cleanup'])
+    print(f'Updated to: {instructions["VERSION"]}')
+
+
+mandatory_modules = {'requests': 'requests', 'lxml': 'lxml'}
+ensure_minimum_imports(mandatory_modules)
+import requests
+import lxml.html as html
 if __name__ == '__main__':
-    mandatory_modules = {'requests': 'requests', 'lxml': 'lxml'}
-    ensure_minimum_imports(mandatory_modules)
-    import requests
-    import lxml.html as html
     print('running')
-    get_update_file('https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD/Simple-Updater', True, UPDATE_FILE_NAME)
-    exit()
     ensure_minimum_imports(NEEDED_IMPORTS)
-    current_version = get_current_version(CHECK_FILE)
     github_dl_href = get_update_file(UPDATE_FILE_LINK, IS_GITHUB_LINK, UPDATE_FILE_NAME)
-    print(current_version)
+    current_version = get_current_version(CHECK_FILE)
+    run_update(UPDATE_FILE_NAME, current_version, github_dl_href)
