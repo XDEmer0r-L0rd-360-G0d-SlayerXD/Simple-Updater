@@ -5,11 +5,11 @@ import importlib
 # written in 3.8, should work for most versions before
 
 # These are to designed to be changed by user
-CHECK_FILE = 'program.py'  # file that contains the version (will be imported, should be in same dir as installer.py)
+CHECK_FILE = 'main.py'  # file that contains the version var (will be imported, should be in same dir as Installer.py)
 UPDATE_FILE_LINK = 'https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD/Simple-Updater'  # where to find the update file
 IS_GITHUB_LINK = True  # runs extra code when its a repo, otherwise assume UPDATE_FILE_LINK is static
 UPDATE_FILE_NAME = 'update.py'  # will eval a .txt and run a .py. must still follow a specified format
-NEEDED_IMPORTS = {'wifiPassword': 'wifipassword', 'requests': 'requests'}  # {'import name': 'pip install name'}
+NEEDED_IMPORTS = {'wifiPassword': 'wifipassword', 'bs4': 'beautifulsoup4'}  # {'import name': 'pip install name'}
 
 
 def ensure_minimum_imports(import_dict):
@@ -110,6 +110,8 @@ def run_update(file_name: str, current_version: str, github_href: str = ''):
     :param github_href: Useful in simplification of links
     :return: None
     """
+    delete_update_file = True
+
     if file_name.split('.')[-1] == 'py':
         mod = importlib.import_module(file_name.replace('.py', '')+'')
         instructions = mod.INSTRUCTIONS
@@ -119,12 +121,10 @@ def run_update(file_name: str, current_version: str, github_href: str = ''):
     if instructions['VERSION'] == current_version:
         print('Already up to date')
         return
-    print(instructions)
     if instructions['prep'] == 'prep func':
         mod.prep_func()
     else:
         exec(instructions['prep'])
-    print(github_href)
     # a simplification
     for a in instructions['dl']:
         dl_from_link(a[0].replace('$R$', github_href), a[1])
@@ -132,15 +132,18 @@ def run_update(file_name: str, current_version: str, github_href: str = ''):
         mod.cleanup_func()
     else:
         exec(instructions['cleanup'])
+    if delete_update_file:
+        os.remove(file_name)
     print(f'Updated to: {instructions["VERSION"]}')
 
 
+# ensure code works properly
 mandatory_modules = {'requests': 'requests', 'lxml': 'lxml'}
 ensure_minimum_imports(mandatory_modules)
 import requests
 import lxml.html as html
 if __name__ == '__main__':
-    print('running')
+    print('running Updater')
     ensure_minimum_imports(NEEDED_IMPORTS)
     github_dl_href = get_update_file(UPDATE_FILE_LINK, IS_GITHUB_LINK, UPDATE_FILE_NAME)
     current_version = get_current_version(CHECK_FILE)
