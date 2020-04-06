@@ -19,6 +19,8 @@ How to use:
 
 I recommend modifying update.py in my latest release for ease of use
 
+wifipassword is a rarely seen module used which I use only to show how the module installer works.
+
 Maybe useful functions:
 ensure_minimum_imports(import_dict: dict):
     test for each module, and if it doesnt import, pip installs it
